@@ -1,0 +1,74 @@
+:root {
+    --primary: #fbbf24;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --bg: #020617;
+    --card: rgba(30, 41, 59, 0.7);
+    --text: #f8fafc;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+.watermark-top {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-right: 2px solid var(--primary);
+    padding-right: 10px;
+}
+
+header { padding: 40px 20px; }
+.header-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+
+.stats-top { display: flex; gap: 20px; }
+.stat-card { background: var(--card); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+.stat-label { display: block; font-size: 0.6rem; font-weight: 800; opacity: 0.6; margin-bottom: 5px; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+.input-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; }
+.form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; margin-top: 20px; }
+
+input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; }
+
+.btn-add { background: var(--primary); color: #020617; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+
+.search-bar { background: var(--card); padding: 15px 25px; border-radius: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+.search-bar input { width: 100%; background: none; border: none; font-size: 1rem; color: white; outline: none; }
+
+.table-container { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+table { width: 100%; border-collapse: collapse; }
+th { background: rgba(0,0,0,0.3); padding: 20px; text-align: left; font-size: 0.7rem; color: var(--primary); }
+td { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+.low-stock { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+.btn-sell { background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+
+.btn-action { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 10px; }
+.btn-action.edit { color: var(--primary); }
+.btn-action.delete { color: #64748b; }
+
+/* TERMINAL ESTILOS */
+.quick-console { position: fixed; bottom: 20px; right: 20px; width: 300px; background: #0f172a; border: 2px solid var(--primary); border-radius: 12px; z-index: 1000; overflow: hidden; }
+.console-header { background: var(--primary); color: #020617; padding: 10px 15px; display: flex; justify-content: space-between; cursor: pointer; font-weight: 800; font-size: 0.7rem; }
+.console-header button { background: none; border: none; cursor: pointer; }
+.console-body { padding: 15px; }
+.console-hint { font-size: 0.6rem; color: #64748b; margin-bottom: 10px; }
+#console-log { height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.7rem; color: var(--success); display: flex; flex-direction: column-reverse; }
+#console-input { width: 100%; background: black; border: 1px solid var(--primary); color: var(--primary); padding: 8px; margin-top: 10px; }
+
+footer { margin-top: 60px; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+.brand-footer { font-size: 1.2rem; font-weight: 800; color: var(--primary); letter-spacing: 4px; }

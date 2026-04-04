@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOCK-MASTER Pro | PATRIC SOFT ®</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="watermark-top">PATRIC SOFT ®</div>
+
+<header>
+    <div class="header-container">
+        <div class="logo-side">
+            <h1>STOCK-MASTER <span style="color: #fbbf24;">PRO</span></h1>
+            <p>SISTEMA DE CONTROL DE INVENTARIO INTELIGENTE</p>
+        </div>
+        <div class="stats-top">
+            <div class="stat-card">
+                <span class="stat-label">TOTAL PRODUCTOS</span>
+                <strong id="count-total">0</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label" style="color: #ef4444;">STOCK BAJO</span>
+                <strong id="count-low" style="color: #ef4444;">0</strong>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="input-card">
+        <h3 id="form-title"><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
+        <div class="form-grid">
+            <input type="text" id="prod-nombre" placeholder="Nombre del producto">
+            <input type="number" id="prod-cantidad" placeholder="Cantidad Inicial">
+            <input type="number" id="prod-precio" placeholder="Precio Unit.">
+            <button id="btn-main" class="btn-add" onclick="procesarProducto()">AGREGAR AL STOCK</button>
+        </div>
+        <button id="btn-cancel" style="display:none; margin-top:15px; background:none; color:#ef4444; border:none; cursor:pointer; font-weight:600;" onclick="cancelarEdicion()">
+            <i class="fas fa-times"></i> CANCELAR EDICIÓN
+        </button>
+    </div>
+
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Buscar producto por nombre..." oninput="filtrarProductos()">
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>PRODUCTO</th>
+                    <th>STOCK ACTUAL</th>
+                    <th>PRECIO UNIT.</th>
+                    <th>REGISTRAR VENTA</th>
+                    <th>VALOR TOTAL</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody id="lista-stock"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="quick-console">
+    <div class="console-header" onclick="toggleConsole()">
+        <span><i class="fas fa-terminal"></i> TERMINAL DE VENTAS</span>
+        <button><i class="fas fa-chevron-up" id="console-icon"></i></button>
+    </div>
+    <div class="console-body" id="console-body" style="display: none;">
+        <p class="console-hint">Ejemplo: 3 YERBA (Enter)</p>
+        <div id="console-log"></div>
+        <input type="text" id="console-input" placeholder="Cantidad y Nombre..." onkeypress="ejecutarComando(event)">
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <p>SISTEMA AUDITADO Y DESARROLLADO POR</p>
+        <div class="brand-footer">PATRIC SOFT ®</div>
+        <p class="rights">TODOS LOS DERECHOS RESERVADOS • 2026</p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
