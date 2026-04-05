@@ -1,4 +1,5 @@
-let inventario = JSON.parse(localStorage.getItem('stock_data')) || [];
+// MODIFICADO: Usamos sessionStorage para que los datos se borren al cerrar la pestaña
+let inventario = JSON.parse(sessionStorage.getItem('stock_data')) || [];
 let editandoID = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -35,7 +36,7 @@ function registrarVenta(id) {
     const producto = inventario.find(p => p.id === id);
 
     if (isNaN(cantVenta) || cantVenta <= 0 || cantVenta > producto.cantidad) {
-        alert("Cantidad de venta no válida.");
+        alert("Cantidad no válida.");
         return;
     }
 
@@ -112,7 +113,8 @@ function eliminarProducto(id) {
 }
 
 function guardarYActualizar() {
-    localStorage.setItem('stock_data', JSON.stringify(inventario));
+    // MODIFICADO: Solo guardamos en la sesión temporal del navegador
+    sessionStorage.setItem('stock_data', JSON.stringify(inventario));
     renderizarTabla();
     actualizarContadores();
 }
