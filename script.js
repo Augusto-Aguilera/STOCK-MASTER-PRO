@@ -1,4 +1,4 @@
-// MODIFICADO: Usamos sessionStorage para que los datos se borren al cerrar la pestaña
+
 let inventario = JSON.parse(sessionStorage.getItem('stock_data')) || [];
 let editandoID = null;
 
