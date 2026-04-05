@@ -14,8 +14,10 @@ body {
     color: var(--text);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
+    padding-bottom: 80px; /* Espacio para la terminal */
 }
 
+/* MARCA DE AGUA - Se oculta en móviles */
 .watermark-top {
     position: absolute;
     top: 20px;
@@ -29,46 +31,87 @@ body {
     padding-right: 10px;
 }
 
-header { padding: 40px 20px; }
-.header-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+/* HEADER Y LOGO */
+header { padding: 20px; }
+.header-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; align-items: center; }
 
-.stats-top { display: flex; gap: 20px; }
-.stat-card { background: var(--card); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-.stat-label { display: block; font-size: 0.6rem; font-weight: 800; opacity: 0.6; margin-bottom: 5px; }
+.logo-side { text-align: center; }
+.logo-side h1 { font-size: 1.8rem; font-weight: 800; line-height: 1.2; }
+.logo-side p { font-size: 0.7rem; letter-spacing: 1px; opacity: 0.7; margin-top: 5px; }
 
-.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+/* CONTADORES */
+.stats-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 400px; }
+.stat-card { background: var(--card); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+.stat-label { display: block; font-size: 0.55rem; font-weight: 800; opacity: 0.6; margin-bottom: 2px; }
+.stat-card strong { font-size: 1.2rem; }
 
-.input-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; }
-.form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; margin-top: 20px; }
+/* CONTENEDOR PRINCIPAL */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
 
-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; }
+/* PANEL DE ENTRADA */
+.input-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+.input-card h3 { font-size: 1rem; margin-bottom: 15px; text-align: center; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 
-.btn-add { background: var(--primary); color: #020617; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 0.9rem; width: 100%; outline: none; }
+input::placeholder { color: rgba(255,255,255,0.4); }
 
-.search-bar { background: var(--card); padding: 15px 25px; border-radius: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
-.search-bar input { width: 100%; background: none; border: none; font-size: 1rem; color: white; outline: none; }
+.btn-add { background: var(--primary); color: #020617; border: none; border-radius: 8px; padding: 12px; font-weight: 800; cursor: pointer; font-size: 0.9rem; width: 100%; }
 
-.table-container { background: var(--card); border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-table { width: 100%; border-collapse: collapse; }
-th { background: rgba(0,0,0,0.3); padding: 20px; text-align: left; font-size: 0.7rem; color: var(--primary); }
-td { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+/* BUSCADOR */
+.search-bar { background: var(--card); padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+.search-bar i { color: var(--primary); font-size: 0.9rem; }
+.search-bar input { background: none; border: none; padding: 0; font-size: 0.9rem; }
+
+/* TABLA - Versión Móvil */
+.table-container { background: var(--card); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; /* Asegura que la tabla no se colapse */ }
+th { background: rgba(0,0,0,0.3); padding: 12px 10px; text-align: left; font-size: 0.6rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; }
 
 .low-stock { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-.btn-sell { background: var(--success); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-
-.btn-action { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 10px; }
+/* BOTONES DE LA TABLA */
+.btn-sell { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+.btn-action { background: none; border: none; cursor: pointer; font-size: 1rem; margin-left: 8px; }
 .btn-action.edit { color: var(--primary); }
 .btn-action.delete { color: #64748b; }
 
-/* TERMINAL ESTILOS */
-.quick-console { position: fixed; bottom: 20px; right: 20px; width: 300px; background: #0f172a; border: 2px solid var(--primary); border-radius: 12px; z-index: 1000; overflow: hidden; }
-.console-header { background: var(--primary); color: #020617; padding: 10px 15px; display: flex; justify-content: space-between; cursor: pointer; font-weight: 800; font-size: 0.7rem; }
-.console-header button { background: none; border: none; cursor: pointer; }
-.console-body { padding: 15px; }
-.console-hint { font-size: 0.6rem; color: #64748b; margin-bottom: 10px; }
-#console-log { height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.7rem; color: var(--success); display: flex; flex-direction: column-reverse; }
-#console-input { width: 100%; background: black; border: 1px solid var(--primary); color: var(--primary); padding: 8px; margin-top: 10px; }
+/* TERMINAL FLOTANTE */
+.quick-console { position: fixed; bottom: 10px; right: 10px; width: calc(100% - 20px); max-width: 300px; background: #0f172a; border: 2px solid var(--primary); border-radius: 10px; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+.console-header { background: var(--primary); color: #020617; padding: 8px 12px; display: flex; justify-content: space-between; cursor: pointer; font-weight: 800; font-size: 0.65rem; }
+.console-header button { background: none; border: none; color: #020617; }
+.console-body { padding: 10px; }
+.console-hint { font-size: 0.55rem; color: #64748b; margin-bottom: 8px; }
+#console-log { height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.65rem; color: var(--success); display: flex; flex-direction: column-reverse; }
+#console-input { background: black; border: 1px solid var(--primary); color: var(--primary); padding: 6px; margin-top: 8px; font-size: 0.75rem; }
 
-footer { margin-top: 60px; padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
-.brand-footer { font-size: 1.2rem; font-weight: 800; color: var(--primary); letter-spacing: 4px; }
+/* FOOTER */
+footer { margin-top: 40px; padding: 30px 15px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+footer p { font-size: 0.6rem; letter-spacing: 2px; color: #64748b; }
+.brand-footer { font-size: 1rem; font-weight: 800; color: var(--primary); margin: 8px 0; letter-spacing: 3px; }
+
+/* MEDIA QUERIES PARA PANTALLAS GRANDES (Escritorio) */
+@media (min-width: 768px) {
+    header { padding: 40px 20px; }
+    .header-container { flex-direction: row; justify-content: space-between; }
+    .logo-side { text-align: left; }
+    .logo-side h1 { font-size: 2.2rem; }
+    .logo-side p { font-size: 0.8rem; }
+    
+    .stats-top { grid-template-columns: 1fr 1fr; gap: 20px; width: auto; }
+    .stat-card { padding: 15px 25px; }
+    .stat-label { font-size: 0.6rem; }
+    .stat-card strong { font-size: 1.5rem; }
+
+    .input-card { padding: 30px; }
+    .input-card h3 { font-size: 1.2rem; text-align: left; }
+    .form-grid { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; }
+    
+    .btn-add { width: auto; }
+    
+    th { font-size: 0.7rem; }
+    td { font-size: 0.9rem; }
+    
+    .watermark-top { display: block; }
+}
