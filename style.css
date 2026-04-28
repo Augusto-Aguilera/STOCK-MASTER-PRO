@@ -1,4 +1,3 @@
-
 :root {
     --primary: #fbbf24;
     --danger: #ef4444;
@@ -50,6 +49,7 @@ header { padding: 20px; }
 .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 
 input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; color: white; font-size: 0.9rem; width: 100%; outline: none; }
+input::placeholder { color: rgba(255,255,255,0.4); }
 
 .btn-add { background: var(--primary); color: #020617; border: none; border-radius: 8px; padding: 12px; font-weight: 800; cursor: pointer; font-size: 0.9rem; width: 100%; }
 
@@ -78,6 +78,7 @@ td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 
 #console-input { background: black; border: 1px solid var(--primary); color: var(--primary); padding: 6px; margin-top: 8px; font-size: 0.75rem; }
 
 footer { margin-top: 40px; padding: 30px 15px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+footer p { font-size: 0.6rem; letter-spacing: 2px; color: #64748b; }
 .brand-footer { font-size: 1rem; font-weight: 800; color: var(--primary); margin: 8px 0; letter-spacing: 3px; }
 
 @media (min-width: 768px) {
@@ -85,10 +86,44 @@ footer { margin-top: 40px; padding: 30px 15px; border-top: 1px solid rgba(255,25
     .header-container { flex-direction: row; justify-content: space-between; }
     .logo-side { text-align: left; }
     .logo-side h1 { font-size: 2.2rem; }
+    .logo-side p { font-size: 0.8rem; }
     .stats-top { grid-template-columns: 1fr 1fr; gap: 20px; width: auto; }
     .stat-card { padding: 15px 25px; }
     .stat-label { font-size: 0.6rem; }
     .stat-card strong { font-size: 1.5rem; }
+    .input-card { padding: 30px; }
+    .input-card h3 { font-size: 1.2rem; text-align: left; }
     .form-grid { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; }
     .btn-add { width: auto; }
+    th { font-size: 0.7rem; }
+    td { font-size: 0.9rem; }
+    .watermark-top { display: block; }
+}/* LOGIN STYLES */
+.auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 2000;
+}
+.auth-card {
+    background: var(--card); padding: 40px; border-radius: 20px; border: 1px solid var(--primary);
+    width: 90%; max-width: 400px; text-align: center;
+}
+.auth-card h2 { color: var(--primary); margin-bottom: 10px; letter-spacing: 2px; }
+.auth-card input { margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2); }
+.auth-buttons { display: flex; gap: 10px; }
+.btn-outline {
+    background: none; border: 1px solid var(--primary); color: var(--primary);
+    border-radius: 8px; padding: 12px; font-weight: 800; cursor: pointer; width: 100%;
+}
+.report-actions {
+    padding: 10px 0;
+    justify-content: center; /* Esto centra los botones */
+}
+
+.report-actions .btn-main {
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.report-actions .btn-main:hover {
+    filter: brightness(1.2); /* Brilla un poquito cuando pasas el mouse */
 }
