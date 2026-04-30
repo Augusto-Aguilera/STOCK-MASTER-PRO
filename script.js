@@ -239,3 +239,54 @@ function toggleConsole() {
     if(!body) return;
     body.style.display = (body.style.display === 'none' || body.style.display === '') ? 'block' : 'none';
 }
+// --- FUNCIONES DE REPORTES Y EXPORTACIÓN ---
+
+function generarReporteTotales() {
+    if (inventario.length === 0) return alert("El inventario está vacío.");
+
+    let totalDinero = 0;
+    let productosSinStock = [];
+    let productosBajoStock = [];
+
+    inventario.forEach(p => {
+        const valorCosto = p.cantidad * p.precio;
+        totalDinero += valorCosto;
+
+        if (p.cantidad === 0) {
+            productosSinStock.push(p.nombre);
+        } else if (p.cantidad <= 5) {
+            productosBajoStock.push(`${p.nombre} (${p.cantidad} u.)`);
+        }
+    });
+
+    let mensaje = `📊 REPORTE DE INVENTARIO\n`;
+    mensaje += `----------------------------------\n`;
+    mensaje += `💰 VALOR TOTAL: $${totalDinero.toLocaleString()}\n`;
+    mensaje += `📦 TOTAL PRODUCTOS: ${inventario.length}\n\n`;
+
+    if (productosSinStock.length > 0) {
+        mensaje += `❌ SIN STOCK:\n- ${productosSinStock.join('\n- ')}\n\n`;
+    }
+
+    if (productosBajoStock.length > 0) {
+        mensaje += `⚠️ BAJO STOCK (Menos de 5):\n- ${productosBajoStock.join('\n- ')}\n`;
+    }
+
+    alert(mensaje);
+}
+
+function exportarExcel() {
+    if (inventario.length === 0) return alert("No hay datos para exportar.");
+    
+    let csv = "Producto,Stock,Precio,Valor Total\n";
+    inventario.forEach(p => {
+        csv += `${p.nombre},${p.cantidad},${p.precio},${p.cantidad * p.precio}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stock_${new Date().toLocaleDateString()}.csv`;
+    a.click();
+}
