@@ -7,7 +7,7 @@ let inventario = [];
 let editandoID = null;
 let currentUser = null;
 
-// --- GESTIÓN DE SESIÓN SIN CIERRE AUTOMÁTICO ---
+// --- GESTIÓN DE SESIÓN ---
 instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     const authContainer = document.getElementById('auth-container');
     const mainContent = document.getElementById('main-content');
@@ -16,26 +16,17 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         currentUser = session.user;
         
-        // Mostramos el contenido de una vez para que no "parpadee"
+        // Mostrar panel principal
         if(authContainer) authContainer.style.display = 'none';
         if(mainContent) mainContent.style.display = 'block';
-        if(userDisplay) userDisplay.innerText = `SALIR (${currentUser.email})`;
-
-        // Verificamos licencia de forma silenciosa
-        const { data, error } = await instanciaSupabase
-            .from('clientes_autorizados')
-            .select('activo')
-            .eq('email', currentUser.email)
-            .maybeSingle();
-
-        // SOLO si la DB responde explícitamente que activo es FALSE, lo sacamos
-        if (data && data.activo === false) {
-            alert("⚠️ LICENCIA INACTIVA");
-            await instanciaSupabase.auth.signOut();
-            return;
+        
+        // Actualizar texto del botón de salida
+        if(userDisplay) {
+            userDisplay.innerHTML = `<i class="fas fa-sign-out-alt"></i> SALIR (${currentUser.email})`;
+            // Nos aseguramos de que el clic funcione
+            userDisplay.onclick = logout; 
         }
 
-        // Si hay error de red o no existe el registro, lo dejamos pasar igual por ahora
         cargarDatosSupabase();
     } else {
         currentUser = null;
@@ -43,6 +34,7 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
         if(mainContent) mainContent.style.display = 'none';
     }
 });
+
 // --- FUNCIONES DE AUTENTICACIÓN ---
 async function login() {
     const email = document.getElementById('auth-email').value.trim();
@@ -51,19 +43,12 @@ async function login() {
     if (error) alert("Error al ingresar: " + error.message);
 }
 
-async function register() {
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value.trim();
-    const { error } = await instanciaSupabase.auth.signUp({ email, password });
-    if (error) alert("Error: " + error.message);
-    else alert("Registro enviado. Si el login falla, avisale al admin que te active.");
-}
-
 async function logout() {
-    await instanciaSupabase.auth.signOut();
+    const { error } = await instanciaSupabase.auth.signOut();
+    if (error) console.error("Error al salir:", error.message);
 }
 
-// --- LÓGICA DE INVENTARIO (REPARADA) ---
+// --- LÓGICA DE PRODUCTOS (CARGA Y GUARDADO) ---
 async function cargarDatosSupabase() {
     if (!currentUser) return;
     const { data, error } = await instanciaSupabase
@@ -79,26 +64,47 @@ async function cargarDatosSupabase() {
 }
 
 async function procesarProducto() {
-    const nombre = document.getElementById('prod-nombre').value.trim();
-    const cantidad = parseInt(document.getElementById('prod-cantidad').value);
-    const precio = parseFloat(document.getElementById('prod-precio').value);
+    const nombreInput = document.getElementById('prod-nombre');
+    const cantidadInput = document.getElementById('prod-cantidad');
+    const precioInput = document.getElementById('prod-precio');
 
-    if (!nombre || isNaN(cantidad) || isNaN(precio)) return alert("Completá los campos.");
+    const nombre = nombreInput.value.trim();
+    const cantidad = parseInt(cantidadInput.value);
+    const precio = parseFloat(precioInput.value);
 
-    if (editandoID) {
-        await instanciaSupabase.from('productos').update({ 
-            nombre: nombre.toUpperCase(), cantidad, precio 
-        }).eq('id', editandoID);
-        cancelarEdicion();
-    } else {
-        await instanciaSupabase.from('productos').insert([{ 
-            nombre: nombre.toUpperCase(), cantidad, precio, user_id: currentUser.id 
-        }]);
+    if (!nombre || isNaN(cantidad) || isNaN(precio)) {
+        alert("Por favor, completa nombre, cantidad y precio.");
+        return;
     }
-    limpiarCampos();
-    await cargarDatosSupabase();
+
+    try {
+        if (editandoID) {
+            const { error } = await instanciaSupabase.from('productos')
+                .update({ nombre: nombre.toUpperCase(), cantidad, precio })
+                .eq('id', editandoID);
+            if(error) throw error;
+            cancelarEdicion();
+        } else {
+            const { error } = await instanciaSupabase.from('productos')
+                .insert([{ 
+                    nombre: nombre.toUpperCase(), 
+                    cantidad: cantidad, 
+                    precio: precio, 
+                    user_id: currentUser.id 
+                }]);
+            if(error) throw error;
+        }
+        
+        limpiarCampos();
+        await cargarDatosSupabase();
+        alert("¡Producto guardado con éxito!");
+    } catch (err) {
+        console.error(err);
+        alert("Error en la base de datos: " + err.message);
+    }
 }
 
+// --- RENDERIZADO Y UI ---
 function renderizarTabla() {
     const tbody = document.getElementById('lista-stock');
     if(!tbody) return;
@@ -126,8 +132,9 @@ function renderizarTabla() {
     });
 }
 
-// --- TERMINAL DE VENTAS (NUEVA Y FUNCIONAL) ---
+// --- TERMINAL DE VENTAS ---
 function ejecutarComando(event) {
+    if (event.key !== 'Enter') return;
     const input = document.getElementById('console-input');
     const valor = input.value.trim().toUpperCase();
     if (!valor) return;
@@ -137,7 +144,7 @@ function ejecutarComando(event) {
     const nombreProd = partes.slice(1).join(" ");
 
     if (isNaN(cant) || !nombreProd) {
-        agregarLogTerminal("Usa: 3 YERBA", "#ef4444");
+        agregarLogTerminal("Usa el formato: 3 YERBA", "#ef4444");
     } else {
         const producto = inventario.find(p => p.nombre === nombreProd);
         if (producto) {
@@ -147,7 +154,7 @@ function ejecutarComando(event) {
                 agregarLogTerminal("Stock insuficiente", "#ef4444");
             }
         } else {
-            agregarLogTerminal("No encontrado", "#fbbf24");
+            agregarLogTerminal(`"${nombreProd}" no existe`, "#fbbf24");
         }
     }
     input.value = "";
@@ -163,20 +170,14 @@ async function hacerVentaRapida(id, nuevaCant, cantVendida, nombre) {
 
 function agregarLogTerminal(mensaje, color) {
     const log = document.getElementById('console-log');
+    if(!log) return;
     const entry = document.createElement('div');
     entry.style.color = color;
     entry.innerText = `> ${mensaje}`;
     log.prepend(entry);
 }
 
-function toggleConsole() {
-    const body = document.getElementById('console-body');
-    const icon = document.getElementById('console-icon');
-    body.style.display = body.style.display === 'none' ? 'block' : 'none';
-    icon.className = body.style.display === 'none' ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
-}
-
-// --- OTRAS FUNCIONES ---
+// --- FUNCIONES ADICIONALES ---
 async function registrarVenta(id) {
     const input = document.getElementById(`venta-${id}`);
     const cant = parseInt(input.value);
@@ -188,7 +189,7 @@ async function registrarVenta(id) {
 }
 
 async function eliminarProducto(id) {
-    if (confirm("¿Eliminar producto?")) {
+    if (confirm("¿Estás seguro de eliminar este producto?")) {
         await instanciaSupabase.from('productos').delete().eq('id', id);
         await cargarDatosSupabase();
     }
@@ -201,8 +202,10 @@ function filtrarProductos() {
 }
 
 function actualizarContadores() {
-    document.getElementById('count-total').innerText = inventario.length;
-    document.getElementById('count-low').innerText = inventario.filter(p => p.cantidad <= 5).length;
+    const totalElement = document.getElementById('count-total');
+    const lowElement = document.getElementById('count-low');
+    if(totalElement) totalElement.innerText = inventario.length;
+    if(lowElement) lowElement.innerText = inventario.filter(p => p.cantidad <= 5).length;
 }
 
 function limpiarCampos() {
@@ -231,18 +234,8 @@ function cancelarEdicion() {
     document.getElementById('btn-cancel').style.display = "none";
 }
 
-function exportarExcel() {
-    let csv = "Producto,Stock,Precio,Valor Total\n";
-    inventario.forEach(p => csv += `${p.nombre},${p.cantidad},${p.precio},${p.cantidad*p.precio}\n`);
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'stock.csv';
-    a.click();
-}
-
-function generarReporteTotales() {
-    const total = inventario.reduce((acc, p) => acc + (p.cantidad * p.precio), 0);
-    alert(`VALOR TOTAL DEL INVENTARIO: $${total.toLocaleString()}`);
+function toggleConsole() {
+    const body = document.getElementById('console-body');
+    if(!body) return;
+    body.style.display = (body.style.display === 'none' || body.style.display === '') ? 'block' : 'none';
 }
