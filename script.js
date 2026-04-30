@@ -7,7 +7,7 @@ let inventario = [];
 let editandoID = null;
 let currentUser = null;
 
-// --- GESTIÓN DE SESIÓN Y LICENCIA (REPARADA PARA NO CERRARSE) ---
+// --- GESTIÓN DE SESIÓN SIN CIERRE AUTOMÁTICO ---
 instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     const authContainer = document.getElementById('auth-container');
     const mainContent = document.getElementById('main-content');
@@ -16,35 +16,33 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         currentUser = session.user;
         
-        // Verificamos licencia silenciosamente
-        try {
-            const { data, error } = await instanciaSupabase
-                .from('clientes_autorizados')
-                .select('activo')
-                .eq('email', currentUser.email)
-                .maybeSingle();
+        // Mostramos el contenido de una vez para que no "parpadee"
+        if(authContainer) authContainer.style.display = 'none';
+        if(mainContent) mainContent.style.display = 'block';
+        if(userDisplay) userDisplay.innerText = `SALIR (${currentUser.email})`;
 
-            if (data && data.activo === true) {
-                // TODO OK: Entramos al sistema
-                if(authContainer) authContainer.style.display = 'none';
-                if(mainContent) mainContent.style.display = 'block';
-                if(userDisplay) userDisplay.innerText = `SALIR (${currentUser.email})`;
-                cargarDatosSupabase();
-            } else if (data && data.activo === false) {
-                alert("⚠️ LICENCIA INACTIVA: Contactá a soporte.");
-                await instanciaSupabase.auth.signOut();
-            }
-            // Si error o !data, no hacemos nada para evitar que te saque por lag de conexión
-        } catch (e) {
-            console.log("Error de verificación momentáneo, reintentando...");
+        // Verificamos licencia de forma silenciosa
+        const { data, error } = await instanciaSupabase
+            .from('clientes_autorizados')
+            .select('activo')
+            .eq('email', currentUser.email)
+            .maybeSingle();
+
+        // SOLO si la DB responde explícitamente que activo es FALSE, lo sacamos
+        if (data && data.activo === false) {
+            alert("⚠️ LICENCIA INACTIVA");
+            await instanciaSupabase.auth.signOut();
+            return;
         }
+
+        // Si hay error de red o no existe el registro, lo dejamos pasar igual por ahora
+        cargarDatosSupabase();
     } else {
         currentUser = null;
         if(authContainer) authContainer.style.display = 'flex';
         if(mainContent) mainContent.style.display = 'none';
     }
 });
-
 // --- FUNCIONES DE AUTENTICACIÓN ---
 async function login() {
     const email = document.getElementById('auth-email').value.trim();
