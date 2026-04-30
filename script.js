@@ -13,27 +13,36 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     const userDisplay = document.getElementById('user-display');
 
     if (session) {
+        // Intentamos verificar la licencia
         const { data, error } = await instanciaSupabase
             .from('clientes_autorizados')
             .select('activo')
             .eq('email', session.user.email)
-            .single();
+            .maybeSingle(); // Usamos maybeSingle para que no explote si no encuentra nada
 
+        // Si hay un error de permisos o no está activo
         if (error || !data || data.activo === false) {
-            alert("⚠️ LICENCIA NO ACTIVA. Contactá soporte.");
-            await instanciaSupabase.auth.signOut();
-            return;
+            console.error("Error de licencia o usuario no autorizado");
+            // Solo cerramos sesión si estamos seguros de que no tiene acceso
+            if (!data || data.activo === false) {
+                alert("⚠️ LICENCIA NO ACTIVA. Contactá soporte.");
+                await instanciaSupabase.auth.signOut();
+                return;
+            }
         }
 
+        // Si todo está OK o es un reintento válido
         currentUser = session.user;
-        if(authContainer) authContainer.style.display = 'none';
-        if(mainContent) mainContent.style.display = 'block';
-        if(userDisplay) userDisplay.innerText = `CERRAR SESIÓN (${currentUser.email})`;
+        authContainer.style.display = 'none';
+        mainContent.style.display = 'block';
+        if(userDisplay) userDisplay.innerText = `SALIR (${currentUser.email})`;
+        
         cargarDatosSupabase();
     } else {
+        // Si no hay sesión, mostramos el login
         currentUser = null;
-        if(authContainer) authContainer.style.display = 'flex';
-        if(mainContent) mainContent.style.display = 'none';
+        authContainer.style.display = 'flex';
+        mainContent.style.display = 'none';
     }
 });
 
