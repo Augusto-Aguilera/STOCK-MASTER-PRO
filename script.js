@@ -1,4 +1,3 @@
-// --- CONFIGURACIÓN DE SUPABASE ---
 const URL_DB = 'https://bawhnopbfygbyimuoqjh.supabase.co';
 const KEY_DB = 'sb_publishable_wppuPKcVUdVrVFe9A-VYDw_9kL-B8me';
 const instanciaSupabase = window.supabase.createClient(URL_DB, KEY_DB);
@@ -7,14 +6,13 @@ let inventario = [];
 let editandoID = null;
 let currentUser = null;
 
-// --- GESTIÓN DE SESIÓN Y LICENCIA ---
+// --- GESTIÓN DE SESIÓN ---
 instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     const authContainer = document.getElementById('auth-container');
     const mainContent = document.getElementById('main-content');
     const userDisplay = document.getElementById('user-display');
 
     if (session) {
-        // VERIFICACIÓN DE LICENCIA
         const { data, error } = await instanciaSupabase
             .from('clientes_autorizados')
             .select('activo')
@@ -22,16 +20,15 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
             .single();
 
         if (error || !data || data.activo === false) {
-            alert("⚠️ LICENCIA NO ACTIVA: Tu cuenta no tiene acceso a PATRIC SOFT ®. Contactá al soporte.");
-            await instanciaSupabase.auth.signOut(); // Lo expulsamos
+            alert("⚠️ LICENCIA NO ACTIVA. Contactá soporte.");
+            await instanciaSupabase.auth.signOut();
             return;
         }
 
-        // Si pasó la prueba, entra al sistema
         currentUser = session.user;
         if(authContainer) authContainer.style.display = 'none';
         if(mainContent) mainContent.style.display = 'block';
-        if(userDisplay) userDisplay.innerText = `SALIR (${currentUser.email})`;
+        if(userDisplay) userDisplay.innerText = `CERRAR SESIÓN (${currentUser.email})`;
         cargarDatosSupabase();
     } else {
         currentUser = null;
@@ -40,27 +37,49 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
-// --- FUNCIONES DE AUTENTICACIÓN ---
+// --- FUNCIONES DE AUTENTICACIÓN MEJORADAS ---
 async function login() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const { error } = await instanciaSupabase.auth.signInWithPassword({ email, password });
-    if (error) alert("Error al ingresar: " + error.message);
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorDisplay = document.getElementById('auth-error');
+
+    if (!email || !password) {
+        if(errorDisplay) errorDisplay.innerText = "Por favor, completa todos los campos.";
+        return;
+    }
+
+    const { data, error } = await instanciaSupabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        console.error("Error completo:", error);
+        if(errorDisplay) errorDisplay.innerText = "Error al ingresar: " + error.message;
+    } else {
+        if(errorDisplay) errorDisplay.innerText = "";
+    }
 }
 
 async function register() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const { error } = await instanciaSupabase.auth.signUp({ email, password });
-    if (error) alert("Error al registrarse: " + error.message);
-    else alert("¡Registro exitoso! Ya podés iniciar sesión.");
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorDisplay = document.getElementById('auth-error');
+
+    if (password.length < 6) {
+        if(errorDisplay) errorDisplay.innerText = "La contraseña debe tener al menos 6 caracteres.";
+        return;
+    }
+
+    const { data, error } = await instanciaSupabase.auth.signUp({ email, password });
+    
+    if (error) {
+        console.error("Error completo:", error);
+        if(errorDisplay) errorDisplay.innerText = "Error al registrarse: " + error.message;
+    } else {
+        alert("¡Registro exitoso! Revisa tu email si la confirmación está activa.");
+        if(errorDisplay) errorDisplay.innerText = "";
+    }
 }
 
-async function logout() {
-    await instanciaSupabase.auth.signOut();
-}
-
-// --- LÓGICA DE INVENTARIO ---
+// --- LÓGICA DE PRODUCTOS ---
 async function cargarDatosSupabase() {
     const { data, error } = await instanciaSupabase
         .from('productos')
@@ -79,7 +98,7 @@ async function procesarProducto() {
     const cantidad = parseInt(document.getElementById('prod-cantidad').value);
     const precio = parseFloat(document.getElementById('prod-precio').value);
 
-    if (!nombre || isNaN(cantidad) || isNaN(precio)) return alert("Completá todos los campos.");
+    if (!nombre || isNaN(cantidad) || isNaN(precio)) return alert("Faltan datos.");
 
     if (editandoID) {
         await instanciaSupabase.from('productos').update({ 
@@ -87,6 +106,7 @@ async function procesarProducto() {
         }).eq('id', editandoID);
         cancelarEdicion();
     } else {
+        // Quitamos el user_id del insert si da problemas de RLS, o asegúrate de que sea válido
         await instanciaSupabase.from('productos').insert([{ 
             nombre: nombre.toUpperCase(), cantidad, precio, user_id: currentUser.id 
         }]);
@@ -110,81 +130,85 @@ function renderizarTabla() {
             <td>$${p.precio.toLocaleString()}</td>
             <td>
                 <input type="number" id="venta-${p.id}" placeholder="0" style="width:50px">
-                <button class="btn-sell" onclick="registrarVenta(${p.id})">
-                    <i class="fas fa-check"></i>
-                </button>
+                <button class="btn-sell" onclick="registrarVenta(${p.id})">OK</button>
             </td>
-            <td style="color:#22c55e; font-weight:bold;">
-                $${(p.cantidad * p.precio).toLocaleString()}
-            </td>
+            <td style="color:#22c55e; font-weight:bold;">$${(p.cantidad * p.precio).toLocaleString()}</td>
             <td>
-                <button class="btn-action edit" onclick="prepararEdicion(${p.id})">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button class="btn-action delete" onclick="eliminarProducto(${p.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn-action edit" onclick="prepararEdicion(${p.id})"><i class="fas fa-pen"></i></button>
+                <button class="btn-action delete" onclick="eliminarProducto(${p.id})"><i class="fas fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(fila);
     });
 }
 
-// --- NUEVAS FUNCIONES DE REPORTES ---
+// --- TERMINAL DE VENTAS (REPARADA) ---
+function ejecutarComando(event) {
+    const input = document.getElementById('console-input');
+    const valor = input.value.trim().toUpperCase();
+    if (!valor) return;
 
-function exportarExcel() {
-    if (inventario.length === 0) return alert("No hay datos para exportar.");
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Producto,Cantidad,Precio Unitario,Valor Total\n";
-    
-    inventario.forEach(p => {
-        let fila = `${p.nombre},${p.cantidad},${p.precio},${p.cantidad * p.precio}`;
-        csvContent += fila + "\n";
-    });
+    const partes = valor.split(" ");
+    const cant = parseInt(partes[0]);
+    const nombre = partes.slice(1).join(" ");
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "inventario_patric_soft.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function generarReporteTotales() {
-    const totalProductos = inventario.length;
-    const valorTotalInvertido = inventario.reduce((acc, p) => acc + (p.cantidad * p.precio), 0);
-    const productosBajoStock = inventario.filter(p => p.cantidad <= 5).length;
-
-    alert(`--- REPORTE PATRIC SOFT ® ---\n\n` +
-          `Total de artículos distintos: ${totalProductos}\n` +
-          `Valor total del inventario: $${valorTotalInvertido.toLocaleString()}\n` +
-          `Productos en alerta (Stock bajo): ${productosBajoStock}\n\n` +
-          `¡Seguí así, el negocio viene bien!`);
-}
-
-// --- RESTO DE FUNCIONES (ELIMINAR, EDITAR, ETC) ---
-
-async function registrarVenta(id) {
-    const inputVenta = document.getElementById(`venta-${id}`);
-    const cantVenta = parseInt(inputVenta.value);
-    const producto = inventario.find(p => p.id === id);
-    
-    if (isNaN(cantVenta) || cantVenta <= 0 || cantVenta > producto.cantidad) {
-        return alert("Cantidad de venta inválida.");
+    if (isNaN(cant) || !nombre) {
+        agregarLogTerminal("Error: Usa '3 COCA'", "#ef4444");
+    } else {
+        const prod = inventario.find(p => p.nombre === nombre);
+        if (prod) {
+            if (prod.cantidad >= cant) {
+                hacerVentaRapida(prod.id, prod.cantidad - cant);
+                agregarLogTerminal(`Vendido ${cant} ${nombre}`, "#22c55e");
+            } else {
+                agregarLogTerminal("Stock insuficiente", "#ef4444");
+            }
+        } else {
+            agregarLogTerminal("No encontrado", "#fbbf24");
+        }
     }
+    input.value = "";
+}
 
-    const { error } = await instanciaSupabase
-        .from('productos')
-        .update({ cantidad: producto.cantidad - cantVenta })
-        .eq('id', id);
+async function hacerVentaRapida(id, nuevaCant) {
+    await instanciaSupabase.from('productos').update({ cantidad: nuevaCant }).eq('id', id);
+    await cargarDatosSupabase();
+}
 
-    if (!error) await cargarDatosSupabase();
+function agregarLogTerminal(msg, color) {
+    const log = document.getElementById('console-log');
+    const entry = document.createElement('div');
+    entry.style.color = color;
+    entry.innerText = `> ${msg}`;
+    log.prepend(entry);
+}
+
+function toggleConsole() {
+    const body = document.getElementById('console-body');
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+
+function filtrarProductos() {
+    const buscado = document.getElementById('search-input').value.toUpperCase();
+    const filas = document.querySelectorAll('#lista-stock tr');
+    filas.forEach(fila => {
+        const nombre = fila.cells[0].innerText;
+        fila.style.display = nombre.includes(buscado) ? '' : 'none';
+    });
+}
+
+// --- UTILIDADES ---
+async function registrarVenta(id) {
+    const input = document.getElementById(`venta-${id}`);
+    const cant = parseInt(input.value);
+    const p = inventario.find(prod => prod.id === id);
+    if (isNaN(cant) || cant <= 0 || cant > p.cantidad) return alert("Cant. inválida");
+    await instanciaSupabase.from('productos').update({ cantidad: p.cantidad - cant }).eq('id', id);
+    await cargarDatosSupabase();
 }
 
 async function eliminarProducto(id) {
-    if (confirm("¿Seguro que querés eliminar este producto?")) {
+    if (confirm("¿Borrar?")) {
         await instanciaSupabase.from('productos').delete().eq('id', id);
         await cargarDatosSupabase();
     }
@@ -195,27 +219,41 @@ function actualizarContadores() {
     document.getElementById('count-low').innerText = inventario.filter(p => p.cantidad <= 5).length;
 }
 
-function limpiarCampos() {
-    document.getElementById('prod-nombre').value = '';
-    document.getElementById('prod-cantidad').value = '';
-    document.getElementById('prod-precio').value = '';
-}
-
 function prepararEdicion(id) {
     const p = inventario.find(prod => prod.id === id);
     document.getElementById('prod-nombre').value = p.nombre;
     document.getElementById('prod-cantidad').value = p.cantidad;
     document.getElementById('prod-precio').value = p.precio;
     editandoID = id;
-    document.getElementById('form-title').innerText = "Editando Producto";
-    document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
+    document.getElementById('btn-main').innerText = "GUARDAR";
     document.getElementById('btn-cancel').style.display = "block";
 }
 
 function cancelarEdicion() {
     editandoID = null;
     limpiarCampos();
-    document.getElementById('form-title').innerText = "Nuevo Producto";
     document.getElementById('btn-main').innerText = "AGREGAR AL STOCK";
     document.getElementById('btn-cancel').style.display = "none";
+}
+
+function limpiarCampos() {
+    document.getElementById('prod-nombre').value = '';
+    document.getElementById('prod-cantidad').value = '';
+    document.getElementById('prod-precio').value = '';
+}
+
+function exportarExcel() {
+    let csv = "Producto,Cantidad,Precio,Total\n";
+    inventario.forEach(p => csv += `${p.nombre},${p.cantidad},${p.precio},${p.cantidad*p.precio}\n`);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'stock.csv');
+    a.click();
+}
+
+function generarReporteTotales() {
+    const total = inventario.reduce((acc, p) => acc + (p.cantidad * p.precio), 0);
+    alert(`Total en Stock: $${total.toLocaleString()}`);
 }
