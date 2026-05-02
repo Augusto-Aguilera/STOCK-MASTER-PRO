@@ -16,14 +16,11 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         currentUser = session.user;
         
-        // Mostrar panel principal
         if(authContainer) authContainer.style.display = 'none';
         if(mainContent) mainContent.style.display = 'block';
         
-        // Actualizar texto del botón de salida
         if(userDisplay) {
             userDisplay.innerHTML = `<i class="fas fa-sign-out-alt"></i> SALIR (${currentUser.email})`;
-            // Nos aseguramos de que el clic funcione
             userDisplay.onclick = logout; 
         }
 
@@ -67,10 +64,12 @@ async function procesarProducto() {
     const nombreInput = document.getElementById('prod-nombre');
     const cantidadInput = document.getElementById('prod-cantidad');
     const precioInput = document.getElementById('prod-precio');
+    const costoInput = document.getElementById('prod-costo'); // Capturamos el nuevo input
 
     const nombre = nombreInput.value.trim();
     const cantidad = parseInt(cantidadInput.value);
     const precio = parseFloat(precioInput.value);
+    const costo = parseFloat(costoInput.value) || 0; // Obtenemos el costo
 
     if (!nombre || isNaN(cantidad) || isNaN(precio)) {
         alert("Por favor, completa nombre, cantidad y precio.");
@@ -80,7 +79,12 @@ async function procesarProducto() {
     try {
         if (editandoID) {
             const { error } = await instanciaSupabase.from('productos')
-                .update({ nombre: nombre.toUpperCase(), cantidad, precio })
+                .update({ 
+                    nombre: nombre.toUpperCase(), 
+                    cantidad, 
+                    precio,
+                    costo: costo // Guardamos el costo actualizado
+                })
                 .eq('id', editandoID);
             if(error) throw error;
             cancelarEdicion();
@@ -90,6 +94,7 @@ async function procesarProducto() {
                     nombre: nombre.toUpperCase(), 
                     cantidad: cantidad, 
                     precio: precio, 
+                    costo: costo, // Insertamos el costo inicial
                     user_id: currentUser.id 
                 }]);
             if(error) throw error;
@@ -212,6 +217,7 @@ function limpiarCampos() {
     document.getElementById('prod-nombre').value = '';
     document.getElementById('prod-cantidad').value = '';
     document.getElementById('prod-precio').value = '';
+    document.getElementById('prod-costo').value = '';
 }
 
 function prepararEdicion(id) {
@@ -219,6 +225,7 @@ function prepararEdicion(id) {
     document.getElementById('prod-nombre').value = p.nombre;
     document.getElementById('prod-cantidad').value = p.cantidad;
     document.getElementById('prod-precio').value = p.precio;
+    document.getElementById('prod-costo').value = p.costo || ''; // Cargamos el costo al editar
     editandoID = id;
     document.getElementById('form-title').innerText = "Editando Producto";
     document.getElementById('btn-main').innerText = "GUARDAR CAMBIOS";
@@ -249,8 +256,8 @@ function generarReporteTotales() {
     let productosBajoStock = [];
 
     inventario.forEach(p => {
-        const valorCosto = p.cantidad * p.precio;
-        totalDinero += valorCosto;
+        const valorVenta = p.cantidad * p.precio;
+        totalDinero += valorVenta;
 
         if (p.cantidad === 0) {
             productosSinStock.push(p.nombre);
@@ -261,7 +268,7 @@ function generarReporteTotales() {
 
     let mensaje = `📊 REPORTE DE INVENTARIO\n`;
     mensaje += `----------------------------------\n`;
-    mensaje += `💰 VALOR TOTAL: $${totalDinero.toLocaleString()}\n`;
+    mensaje += `💰 VALOR TOTAL (VENTA): $${totalDinero.toLocaleString()}\n`;
     mensaje += `📦 TOTAL PRODUCTOS: ${inventario.length}\n\n`;
 
     if (productosSinStock.length > 0) {
@@ -278,9 +285,9 @@ function generarReporteTotales() {
 function exportarExcel() {
     if (inventario.length === 0) return alert("No hay datos para exportar.");
     
-    let csv = "Producto,Stock,Precio,Valor Total\n";
+    let csv = "Producto,Stock,Costo,Precio Venta,Valor Total Venta\n";
     inventario.forEach(p => {
-        csv += `${p.nombre},${p.cantidad},${p.precio},${p.cantidad * p.precio}\n`;
+        csv += `${p.nombre},${p.cantidad},${p.costo || 0},${p.precio},${p.cantidad * p.precio}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv' });
