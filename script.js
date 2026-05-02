@@ -45,7 +45,6 @@ async function logout() {
     if (error) console.error("Error al salir:", error.message);
 }
 
-// --- LÓGICA DE PRODUCTOS (CARGA Y GUARDADO) ---
 async function cargarDatosSupabase() {
     if (!currentUser) return;
     const { data, error } = await instanciaSupabase
