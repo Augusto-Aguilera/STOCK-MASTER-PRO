@@ -33,11 +33,49 @@ instanciaSupabase.auth.onAuthStateChange(async (event, session) => {
 });
 
 // --- FUNCIONES DE AUTENTICACIÓN ---
+// --- FUNCIONES DE AUTENTICACIÓN ACTUALIZADAS ---
+
 async function login() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
+    
+    if (!email || !password) return alert("Por favor, completa todos los campos.");
+
     const { error } = await instanciaSupabase.auth.signInWithPassword({ email, password });
-    if (error) alert("Error al ingresar: " + error.message);
+    if (error) {
+        alert("Error al ingresar: " + error.message);
+    }
+}
+
+async function register() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+
+    if (!email || !password) return alert("Por favor, ingresa un correo y contraseña.");
+
+    // 1. Verificamos si el correo está en tu lista de "Clientes Autorizados"
+    const { data: autorizado, error: errorCheck } = await instanciaSupabase
+        .from('clientes_autorizados')
+        .select('*')
+        .eq('email', email)
+        .eq('activo', true)
+        .single();
+
+    if (errorCheck || !autorizado) {
+        return alert("Este correo no está autorizado para usar PATRIC SOFT. Contacta al administrador.");
+    }
+
+    // 2. Si está autorizado, procedemos al registro oficial
+    const { data, error } = await instanciaSupabase.auth.signUp({
+        email,
+        password,
+    });
+
+    if (error) {
+        alert("Error en el registro: " + error.message);
+    } else {
+        alert("¡Registro exitoso! Revisa tu correo para confirmar la cuenta (o intenta ingresar si desactivaste la confirmación).");
+    }
 }
 
 async function logout() {
@@ -45,6 +83,7 @@ async function logout() {
     if (error) console.error("Error al salir:", error.message);
 }
 
+// --- LÓGICA DE PRODUCTOS (CARGA Y GUARDADO) ---
 async function cargarDatosSupabase() {
     if (!currentUser) return;
     const { data, error } = await instanciaSupabase
