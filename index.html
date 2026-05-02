@@ -59,7 +59,13 @@
             <div class="form-grid">
                 <input type="text" id="prod-nombre" placeholder="Nombre del producto">
                 <input type="number" id="prod-cantidad" placeholder="Cantidad Inicial">
-                <input type="number" id="prod-precio" placeholder="Precio Unit.">
+                
+                <!-- NUEVOS CAMPOS PARA CÁLCULO DE PRECIO -->
+                <input type="number" id="prod-costo" placeholder="Costo Unit. $" oninput="calcularPrecioSugerido()">
+                <input type="number" id="prod-porcentaje" placeholder="% Ganancia" value="30" oninput="calcularPrecioSugerido()">
+                
+                <input type="number" id="prod-precio" placeholder="Precio Venta Final">
+                
                 <button id="btn-main" class="btn-add" onclick="procesarProducto()">AGREGAR AL STOCK</button>
             </div>
             <button id="btn-cancel" style="display:none; margin-top:15px; background:none; color:#ef4444; border:none; cursor:pointer; font-weight:600;" onclick="cancelarEdicion()">
@@ -112,6 +118,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // FUNCIÓN PARA CALCULAR EL PRECIO AUTOMÁTICAMENTE
+    function calcularPrecioSugerido() {
+        const costo = parseFloat(document.getElementById('prod-costo').value) || 0;
+        const porcentaje = parseFloat(document.getElementById('prod-porcentaje').value) || 0;
+        const inputPrecioVenta = document.getElementById('prod-precio');
+
+        if (costo > 0) {
+            const precioSugerido = costo + (costo * (porcentaje / 100));
+            inputPrecioVenta.value = Math.round(precioSugerido); // Redondea para evitar centavos molestos
+        }
+    }
+</script>
 <script src="script.js"></script>
 </body>
 </html>
